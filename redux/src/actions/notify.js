@@ -1,9 +1,8 @@
-import { notificationChange } from '../reducers/notificationReducer'
+import { notificationChange } from '../reducers/notificationReducer';
 
-export const notify = (dispatch, message) => {
-  dispatch(notificationChange(message)); // Устанавливаем сообщение
+export const notify = (dispatch, message, duration = 5000) => {
+  dispatch(notificationChange(message)); // setting message
   setTimeout(() => {
-    dispatch(notificationChange('')); // Сбрасываем сообщение через 5 секунд
-  }, 5000);
+    dispatch(notificationChange('')); // clearing message
+  }, duration);
 };
-

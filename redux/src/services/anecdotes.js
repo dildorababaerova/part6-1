@@ -7,8 +7,8 @@ const getAll = async () => {
   return response.data
 }
 
+const getId = () => (100000 * Math.random()).toFixed(0)
 const createNew = async (content) => {
-  const getId = () => (100000 * Math.random()).toFixed(0)
   const newObject = {
     content,
     id: getId(),
@@ -19,10 +19,12 @@ const createNew = async (content) => {
 }
 
 const voteService = async (id) => {
-  const anecdote = await axios.get(`${baseUrl}/${id}`)
-  const newObject = { ...anecdote, votes: anecdote.votes + 1 }
-  const response = await axios.put(`${baseUrl}/${id}`, newObject)
-  return response.data
-}
+  const response = await axios.get(`${baseUrl}/${id}`);
+  const anecdote = response.data; // data from the server
+  const newObject = { ...anecdote, votes: anecdote.votes + 1 }; // actualize votes
+  const updatedResponse = await axios.put(`${baseUrl}/${id}`, newObject); // send updated data to the server
+  return updatedResponse.data; // return updated data
+};
+
 
 export default { getAll, createNew, voteService }

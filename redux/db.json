@@ -1,9 +1,9 @@
 {
-  "anecdotes":[
+  "anecdotes": [
     {
       "content": "If it hurts, do it more often",
       "id": "47145",
-      "votes": 0
+      "votes": 1
     },
     {
       "content": "Adding manpower to a late software project makes it later!",
@@ -23,11 +23,51 @@
     {
       "content": "Premature optimization is the root of all evil.",
       "id": "25170",
-      "votes": 0
+      "votes": 1
     },
     {
       "content": "Debugging is twice as hard as writing the code in the first place. Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it.",
       "id": "98312",
+      "votes": 1
+    },
+    {
+      "id": "56617",
+      "content": "razve",
+      "votes": 0
+    },
+    {
+      "id": "91544",
+      "content": "ssssss",
+      "votes": 0
+    },
+    {
+      "id": "25119",
+      "content": "wwwww",
+      "votes": 0
+    },
+    {
+      "id": "72588",
+      "content": "pochemu",
+      "votes": 0
+    },
+    {
+      "id": "38382",
+      "content": "pochemu rabotaesh cherez raz!!!?????",
+      "votes": 0
+    },
+    {
+      "id": "84167",
+      "content": "a nuu!!!!",
+      "votes": 0
+    },
+    {
+      "id": "84668",
+      "content": "chto ti hochesh?",
+      "votes": 0
+    },
+    {
+      "id": "15469",
+      "content": "aaaaa",
       "votes": 0
     }
   ]
