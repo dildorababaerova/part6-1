@@ -17,9 +17,10 @@ const Anecdotes = () => {
 
 
     const vote = async (id) => {
-      const updetedAnecdoteVote = await anecdoteService.voteService(id);
-      dispatch(voteOf(updetedAnecdoteVote.id));
-      const message = `You voted for: '${updetedAnecdoteVote.content}'`;
+      // const updetedAnecdoteVote = await anecdoteService.voteService(id);
+      dispatch(voteOf(id));
+      const content = anecdotes.find(anecdote => anecdote.id === id).content;
+      const message = `You voted for: '${content}'`;
       notify(dispatch,  message);
       }
       
