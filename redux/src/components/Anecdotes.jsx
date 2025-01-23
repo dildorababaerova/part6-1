@@ -1,7 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux'
 import { voteOf } from '../reducers/anecdoteReducer'
-import { notify } from '../actions/notify'
-import anecdoteService from '../services/anecdotes'
+import{setNotification} from '../reducers/notificationReducer'
 
 const Anecdotes = () => {
     const dispatch = useDispatch()
@@ -21,7 +20,7 @@ const Anecdotes = () => {
       dispatch(voteOf(id));
       const content = anecdotes.find(anecdote => anecdote.id === id).content;
       const message = `You voted for: '${content}'`;
-      notify(dispatch,  message);
+      dispatch(setNotification(message, 5));
       }
       
     const sortedAnecdotes = anecdotes ?[...anecdotes].sort((a, b) => b.votes - a.votes): [];
