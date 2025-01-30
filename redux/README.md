@@ -12,8 +12,11 @@ Currently, two official plugins are available:
 
 * `npm create vite@latest redux --template react`
 *  `npm install redux`
-* `npm install --save-dev jest @babel/preset-env @babel/preset-react eslint-plugin-jest`
 
+
+* `npm install --save-dev jest @babel/preset-env @babel/preset-react eslint-plugin-jest`
+- The whole state of the application is stored in one JavaScript object in the store.
+- The state of the store is changed with actions. Actions are `objects`, which have at least a field determining the type of the action. If there is data involved with the action,
 - Create `.babelrc` file
 ```js
 {
