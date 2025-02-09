@@ -344,5 +344,437 @@ The combine reducer works in such a way that every action get handled in every p
 Typically only one reducer is interested in any given action but there are situations where multiple reducers 
 change their respective parts of the state based on the same action.
 
-### Finishing the filter Selected
+### Finishing the filter 
 
+We start by changing the rendering of the application and hooking up the store to the application in the main.jsx file:
+```js
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <Provider store={store}>
+    <App />
+  </Provider>
+)
+```
+
+Because the notes are in the stores field notes, we only have to make a little change to the selector function:
+
+```js
+  const notes = useSelector(state => state.notes)
+```
+
+- Lets extract the visibility filter into its own src/components/VisibilityFilter.jsx component:
+
+```js
+import { filterChange } from '../reducers/filterReducer'
+import { useDispatch } from 'react-redux'
+
+const VisibilityFilter = (props) => {
+  const dispatch = useDispatch()
+
+  return (
+    <div>
+      all    
+      <input 
+        type="radio" 
+        name="filter" 
+        onChange={() => dispatch(filterChange('ALL'))}
+      />
+      important   
+      <input
+        type="radio"
+        name="filter"
+        onChange={() => dispatch(filterChange('IMPORTANT'))}
+      />
+      nonimportant 
+      <input
+        type="radio"
+        name="filter"
+        onChange={() => dispatch(filterChange('NONIMPORTANT'))}
+      />
+    </div>
+  )
+}
+
+export default VisibilityFilter
+```
+
+Let's change the Notes component to incorporate the filter:
+
+```js
+const Notes = () => {
+  const dispatch = useDispatch()
+
+  const notes = useSelector(state => {
+    if ( state.filter === 'ALL' ) {
+      return state.notes
+    }
+    return state.filter  === 'IMPORTANT' 
+      ? state.notes.filter(note => note.important)
+      : state.notes.filter(note => !note.important)
+  })
+
+  return(
+    <ul>
+      {notes.map(note =>
+        <Note
+          key={note.id}
+          note={note}
+          handleClick={() => 
+            dispatch(toggleImportanceOf(note.id))
+          }
+        />
+      )}
+    </ul>
+  )
+}
+```
+
+We only make changes to the selector function, which used to be:
+```js
+useSelector(state => state.notes)
+```
+Let's simplify the selector by destructuring the fields from the state it receives as a parameter:
+
+```js
+const notes = useSelector(({ filter, notes }) => {
+  if ( filter === 'ALL' ) {
+    return notes
+  }
+  return filter  === 'IMPORTANT' 
+    ? notes.filter(note => note.important)
+    : notes.filter(note => !note.important)
+})
+```
+-Attention! state selector destructured. `state = { filter, notes }`
+
+
+
+### Redux Toolkit
+
+`npm install @reduxjs/toolkit`
+Instead of Redux's createStore function, let's create the store using Redux Toolkit's `configureStore` function:
+
+```js
+import ReactDOM from 'react-dom/client'
+import { Provider } from 'react-redux'
+
+import { configureStore } from '@reduxjs/toolkit'
+import App from './App'
+
+import noteReducer from './reducers/noteReducer'
+import filterReducer from './reducers/filterReducer'
+
+
+const store = configureStore({
+  reducer: {
+    notes: noteReducer,
+    filter: filterReducer
+  }
+})
+
+console.log(store.getState())
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <Provider store={store}>
+    <App />
+  </Provider>
+)
+```
+
+We can use the createSlice function to refactor the reducer and action creators in the reducers/noteReducer.js file in the following manner:
+
+```js
+import { createSlice } from '@reduxjs/toolkit'
+
+const initialState = [
+  {
+    content: 'reducer defines how redux store works',
+    important: true,
+    id: 1,
+  },
+  {
+    content: 'state of store can contain any data',
+    important: false,
+    id: 2,
+  },
+]
+
+const generateId = () =>
+  Number((Math.random() * 1000000).toFixed(0))
+
+
+const noteSlice = createSlice({
+  name: 'notes',
+  initialState,
+  reducers: {
+    createNote(state, action) {
+      const content = action.payload
+      state.push({
+        content,
+        important: false,
+        id: generateId(),
+      })
+    },
+    toggleImportanceOf(state, action) {
+      const id = action.payload
+      const noteToChange = state.find(n => n.id === id)
+      const changedNote = { 
+        ...noteToChange, 
+        important: !noteToChange.important 
+      }
+      return state.map(note =>
+        note.id !== id ? note : changedNote 
+      )     
+    }
+  },
+})
+```
+
+The createSlice function's name parameter defines the prefix which is used in the action's type values. For example, the createNote action defined later will have the type value of notes/createNote.
+
+Note that the action.payload in the function contains the argument provided by calling the action creator:
+
+```js
+dispatch(createNote('Redux Toolkit is awesome!'))
+```
+This dispatch call is equivalent to dispatching the following object:
+
+```js
+dispatch({ type: 'notes/createNote', payload: 'Redux Toolkit is awesome!' })
+```
+
+### Redux DevTools
+
+Redux DevTools is a Chrome addon that offers useful development tools for Redux.
+
+
+# Communicating with server in a Redux application
+
+We'll install json-server for the project:
+
+`npm install json-server --save-dev`
+
+and add the following line to the scripts part of the file package.json
+
+```js
+"scripts": {
+  "server": "json-server -p3001 --watch db.json",
+  // ...
+}
+```
+
+### Getting data from the backend
+
+```js
+import axios from 'axios'
+
+const baseUrl = 'http://localhost:3001/notes'
+
+const getAll = async () => {
+  const response = await axios.get(baseUrl)
+  return response.data
+}
+
+export default { getAll }
+```
+
+We'll add axios to the project
+
+`npm install axios`
+
+```js
+const baseUrl = 'http://localhost:3001/notes'
+
+const getAll = async () => {
+  const response = await axios.get(baseUrl)
+  return response.data
+}
+
+
+const createNew = async (content) => {
+  const object = { content, important: false }
+  const response = await axios.post(baseUrl, object)
+  return response.data
+}
+
+export default {
+  getAll,
+
+  createNew,
+}
+```
+
+The method addNote of the component NewNote changes slightly:
+
+```js
+import { useDispatch } from 'react-redux'
+import { createNote } from '../reducers/noteReducer'
+
+import noteService from '../services/notes'
+
+const NewNote = (props) => {
+  const dispatch = useDispatch()
+  
+
+  const addNote = async (event) => {
+    event.preventDefault()
+    const content = event.target.note.value
+    event.target.note.value = ''
+
+    const newNote = await noteService.createNew(content)
+    dispatch(createNote(newNote))
+  }
+
+  return (
+    <form onSubmit={addNote}>
+      <input name="note" />
+      <button type="submit">add</button>
+    </form>
+  )
+}
+
+export default NewNote
+```
+Because the backend generates ids for the notes, we'll change the action creator createNote in the file noteReducer.js accordingly(Attention! in reducers: createNote(...) does not exist id creator ):
+
+```js
+const noteSlice = createSlice({
+  name: 'notes',
+  initialState: [],
+  reducers: {
+    createNote(state, action) {
+
+      state.push(action.payload)
+    },
+    // ..
+  },
+})
+```
+
+### Asynchronous actions and Redux Thunk
+
+With Redux Thunk it is possible to implement `action creators` which `return a function instead of an object`. The function receives Redux store's `dispatch` and `getState` methods `as parameters`. This allows for example implementations of `asynchronous action creators`, which first wait for the completion of a certain asynchronous operation and after that dispatch some action, which changes the store's state.
+
+```js
+// ...
+
+import noteService from '../services/notes'
+
+const noteSlice = createSlice(/* ... */)
+
+export const { createNote, toggleImportanceOf, setNotes, appendNote } = noteSlice.actions
+
+
+export const initializeNotes = () => {
+  return async dispatch => {
+    const notes = await noteService.getAll()
+    dispatch(setNotes(notes))
+  }
+}
+
+export default noteSlice.reducer
+```
+
+The component App can now be defined as follows:
+```js
+// ...
+
+import { initializeNotes } from './reducers/noteReducer'
+
+const App = () => {
+  const dispatch = useDispatch()
+
+
+  useEffect(() => {
+    dispatch(initializeNotes()) 
+  }, []) 
+
+  return (
+    <div>
+      <NewNote />
+      <VisibilityFilter />
+      <Notes />
+    </div>
+  )
+}
+```
+
+Next, let's replace the createNote action creator created by the createSlice function with an asynchronous action creator:
+
+```js
+// ...
+import noteService from '../services/notes'
+
+const noteSlice = createSlice({
+  name: 'notes',
+  initialState: [],
+  reducers: {
+    toggleImportanceOf(state, action) {
+      const id = action.payload
+
+      const noteToChange = state.find(n => n.id === id)
+
+      const changedNote = { 
+        ...noteToChange, 
+        important: !noteToChange.important 
+      }
+
+      return state.map(note =>
+        note.id !== id ? note : changedNote 
+      )     
+    },
+    appendNote(state, action) {
+      state.push(action.payload)
+    },
+    setNotes(state, action) {
+      return action.payload
+    }
+    // createNote definition removed from here!
+  },
+})
+
+
+export const { toggleImportanceOf, appendNote, setNotes } = noteSlice.actions
+
+export const initializeNotes = () => {
+  return async dispatch => {
+    const notes = await noteService.getAll()
+    dispatch(setNotes(notes))
+  }
+}
+
+
+export const createNote = content => {
+  return async dispatch => {
+    const newNote = await noteService.createNew(content)
+    dispatch(appendNote(newNote))
+  }
+}
+
+export default noteSlice.reducer
+```
+The component NewNote changes as follows:
+
+```js
+// ...
+
+import { createNote } from '../reducers/noteReducer'
+
+const NewNote = () => {
+  const dispatch = useDispatch()
+  
+  const addNote = async (event) => {
+    event.preventDefault()
+    const content = event.target.note.value
+    event.target.note.value = ''
+
+    dispatch(createNote(content))
+  }
+
+  return (
+    <form onSubmit={addNote}>
+      <input name="note" />
+      <button type="submit">add</button>
+    </form>
+  )
+}
+```
